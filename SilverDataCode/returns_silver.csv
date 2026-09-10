@@ -1,0 +1,8 @@
+Column,Kiểu dữ liệu,Mô tả,Allowed Values / Range,Nullable,Key
+return_id,text/categorical,Mã lượt trả hàng,39939 giá trị phân loại khác nhau,No,PK
+order_id,integer,Mã đơn hàng,"min = 2, max = 833351",No,FK → orders_enriched.order_id
+product_id,integer,Mã định danh sản phẩm,"min = 3, max = 2412",No,FK → products.product_id
+return_date,date (YYYY-MM-DD),Ngày trả hàng,2012-07-11 → 2022-12-31,No,
+return_reason,text/categorical,Lý do trả hàng,changed_mind; defective; late_delivery; not_as_described; wrong_size,No,
+return_quantity,integer,Số lượng sản phẩm trả lại,"min = 1, max = 8",No,
+refund_amount,float/decimal,Số tiền hoàn lại cho khách,"min = 458.81, max = 160938",No,
