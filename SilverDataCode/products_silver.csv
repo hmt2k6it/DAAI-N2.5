@@ -1,9 +1,0 @@
-Column,Kiểu dữ liệu,Mô tả,Allowed Values / Range,Nullable,Key
-product_id,integer,Mã định danh sản phẩm,"min = 1, max = 2412",No,PK
-product_name,text/categorical,Tên sản phẩm,2172 giá trị phân loại khác nhau,No,
-category,text/categorical,Ngành hàng (Phân loại),Casual; GenZ; Outdoor; Streetwear,No,
-segment,text/categorical,Phân khúc sản phẩm và mục đích sử dụng.,Activewear; All-weather; Balanced; Everyday; Performance; Premium; Standard; Trendy,No,
-size,text/categorical,Kích cỡ,L; M; S; XL,No,
-color,text/categorical,Màu sắc,black; blue; green; orange; pink; purple; red; silver; white; yellow,No,
-price,float/decimal,Giá bán niêm yết,"min = 9.05659, max = 40950",No,
-cogs,float/decimal,Giá vốn,"min = 5.18383, max = 38902.5",No,
