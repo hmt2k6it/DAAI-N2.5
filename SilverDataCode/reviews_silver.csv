@@ -1,0 +1,8 @@
+Column,Kiểu dữ liệu,Mô tả,Allowed Values / Range,Nullable,Key
+review_id,text/categorical,Mã lượt đánh giá,113551 giá trị phân loại khác nhau,No,PK
+order_id,integer,Mã đơn hàng,"min = 1, max = 833296",No,FK → orders_enriched.order_id
+product_id,integer,Mã định danh sản phẩm,"min = 3, max = 2412",No,FK → products.product_id
+customer_id,integer,Mã định danh khách hàng,"min = 2, max = 157563",No,FK → customers.customer_id
+review_date,date (YYYY-MM-DD),Ngày viết đánh giá,2012-07-10 → 2022-12-31,No,
+rating,integer,Điểm đánh giá,"min = 1, max = 5",No,
+review_title,text/categorical,Tiêu đề đánh giá,18 giá trị phân loại khác nhau,No,
