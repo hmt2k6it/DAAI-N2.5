@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Star Schema — Data Warehouse DAAI-N2.5</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --card-alt: #f8fafc;
+      --header-bg: #123742;
+      --header-text: #ffffff;
+      --border: #e2e8f0;
+      --row-border: #edf2f7;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --edge: #2c5263;
+      --pk-bg: #ecfdf5;
+      --pk-text: #059669;
+      --pk-border: #a7f3d0;
+      --fk-bg: #fffbeb;
+      --fk-text: #d97706;
+      --fk-border: #fde68a;
+      --shadow: 0 10px 25px -4px rgba(18, 55, 66, 0.12), 0 4px 10px -2px rgba(18, 55, 66, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 0%, #e8f0f3 0%, transparent 60%),
+        linear-gradient(rgba(18, 55, 66, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(18, 55, 66, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 28px 28px, 28px 28px;
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header, main {
+      width: min(1520px, 96vw);
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 42px 12px 24px;
+    }
+
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: #e0f2f1;
+      color: #00695c;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 3.5vw, 42px);
+      font-weight: 800;
+      color: #0f2c35;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 950px;
+      margin: 0 0 20px;
+      font-size: 15px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      background: #ffffff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      width: fit-content;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .legend-chip {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .legend-chip.pk { background: var(--pk-bg); color: var(--pk-text); border: 1px solid var(--pk-border); }
+    .legend-chip.fk { background: var(--fk-bg); color: var(--fk-text); border: 1px solid var(--fk-border); }
+
+    .dot-line {
+      width: 22px;
+      height: 3px;
+      background: var(--edge);
+      border-radius: 2px;
+      position: relative;
+    }
+    .dot-line::after {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: -3px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--edge);
+    }
+
+    .section {
+      margin: 28px 0 44px;
+      padding: 30px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+    }
+
+    .section-head {
+      margin-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      font-weight: 800;
+      color: #103644;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .canvas {
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      min-width: 1360px;
+      height: auto;
+      border-radius: 14px;
+      background: #fafcfd;
+      border: 1px solid #eef2f6;
+    }
+
+    /* Databricks Table Card Styling */
+    .db-table {
+      width: 100%;
+      height: 100%;
+      background: var(--card-bg);
+      border-radius: 9px;
+      box-shadow: 0 8px 24px rgba(18, 55, 66, 0.12), 0 2px 6px rgba(0,0,0,0.04);
+      border: 1px solid #d2dbe3;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+    }
+
+    .db-header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 10px 14px;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      text-align: center;
+      border-bottom: 2px solid rgba(0,0,0,0.15);
+    }
+
+    .db-header.fact {
+      background: #0f323e;
+      border-top: 4px solid #f59e0b;
+    }
+
+    .db-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+    }
+
+    .db-row {
+      display: flex;
+      align-items: center;
+      padding: 7px 12px;
+      min-height: 31px;
+      border-bottom: 1px solid var(--row-border);
+      background: #ffffff;
+      color: var(--text-main);
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .db-row:nth-child(even) {
+      background: var(--card-alt);
+    }
+
+    .db-row:last-child {
+      border-bottom: none;
+    }
+
+    .db-row .name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-right: 8px;
+      text-transform: uppercase;
+    }
+
+    .pill.pk {
+      background: var(--pk-bg);
+      color: var(--pk-text);
+      border: 1px solid var(--pk-border);
+    }
+
+    .pill.fk {
+      background: var(--fk-bg);
+      color: var(--fk-text);
+      border: 1px solid var(--fk-border);
+    }
+
+    .pill.measure {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* Connector Edges */
+    .edge-path {
+      stroke: var(--edge);
+      stroke-width: 2.2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .dot-marker {
+      fill: var(--edge);
+      stroke: #ffffff;
+      stroke-width: 1.5;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 18px;
+      margin: 32px 0 50px;
+    }
+
+    .note {
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #103644;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .note p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    footer {
+      padding: 20px 0 40px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge-top">Data Warehouse Architecture</div>
+    <h1>Star Schema Diagram</h1>
+    <p>
+      Mô hình Star Schema theo phong cách thiết kế hiện đại của Databricks. Bảng Fact nằm tại trung tâm 
+      lưu trữ các chỉ số đo lường (Measures), kết nối trực tiếp với các bảng Dimension xung quanh thông qua các cặp Khóa chính (PK) — Khóa ngoại (FK).
+    </p>
+    <div class="legend">
+      <span><i class="dot-line"></i> Đường liên kết PK - FK</span>
+      <span><span class="legend-chip pk">PK</span> Khóa chính</span>
+      <span><span class="legend-chip fk">FK</span> Khóa ngoại</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- NGÔI SAO 1 -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Ngôi sao 1 — Doanh thu theo đơn hàng (FACT_ORDERS)</h2>
+        <p>Phục vụ PS1, PS3, PS4 và phân tích doanh thu/KPI trong PS5. Mỗi dòng tương ứng một đơn hàng.</p>
+      </div>
+      <div class="canvas">
+        <svg viewBox="0 0 1420 860" role="img" aria-label="Star schema doanh thu theo đơn hàng">
+          <!-- Connectors (S-curves with bullets) -->
+          <!-- Customer: DIM (340, 205) -> FACT (540, 375) -->
+          <path class="edge-path" d="M 340 205 C 440 205, 440 375, 540 375"/>
+          <circle class="dot-marker" cx="340" cy="205" r="5"/>
+          <circle class="dot-marker" cx="540" cy="375" r="5"/>
+
+          <!-- Geography: DIM (340, 575) -> FACT (540, 406) -->
+          <path class="edge-path" d="M 340 575 C 440 575, 440 406, 540 406"/>
+          <circle class="dot-marker" cx="340" cy="575" r="5"/>
+          <circle class="dot-marker" cx="540" cy="406" r="5"/>
+
+          <!-- Date: DIM (1080, 205) -> FACT (880, 344) -->
+          <path class="edge-path" d="M 1080 205 C 980 205, 980 344, 880 344"/>
+          <circle class="dot-marker" cx="1080" cy="205" r="5"/>
+          <circle class="dot-marker" cx="880" cy="344" r="5"/>
+
+          <!-- Employee: DIM (1080, 475) -> FACT (880, 437) -->
+          <path class="edge-path" d="M 1080 475 C 980 475, 980 437, 880 437"/>
+          <circle class="dot-marker" cx="1080" cy="475" r="5"/>
+          <circle class="dot-marker" cx="880" cy="437" r="5"/>
+
+          <!-- Payment Method: DIM (1080, 715) -> FACT (880, 468) -->
+          <path class="edge-path" d="M 1080 715 C 980 715, 980 468, 880 468"/>
+          <circle class="dot-marker" cx="1080" cy="715" r="5"/>
+          <circle class="dot-marker" cx="880" cy="468" r="5"/>
+
+          <!-- DIM_CUSTOMER (Top Left) -->
+          <foreignObject x="60" y="140" width="280" height="235">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">CUSTOMER DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">customer_key</span></div>
+                <div class="db-row"><span class="name">customer_id</span></div>
+                <div class="db-row"><span class="name">signup_date</span></div>
+                <div class="db-row"><span class="name">gender</span></div>
+                <div class="db-row"><span class="name">age_group</span></div>
+                <div class="db-row"><span class="name">acquisition_channel</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_GEOGRAPHY (Bottom Left) -->
+          <foreignObject x="60" y="510" width="280" height="205">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">GEOGRAPHY DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="name">zip</span></div>
+                <div class="db-row"><span class="name">district</span></div>
+                <div class="db-row"><span class="name">city</span></div>
+                <div class="db-row"><span class="name">region</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- FACT_ORDERS (Center) -->
+          <foreignObject x="540" y="240" width="340" height="475">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header fact">FACT ORDERS</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">order_key</span></div>
+                <div class="db-row"><span class="name">order_id (Degenerate)</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">order_date_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">customer_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">employee_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">payment_method_key</span></div>
+                <div class="db-row"><span class="name">order_status</span></div>
+                <div class="db-row"><span class="name">installments</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">payment_value (Gross)</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">refund_amount</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">net_revenue</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">order_count</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">returned_order_count</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_DATE (Top Right) -->
+          <foreignObject x="1080" y="140" width="280" height="205">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">TIME DIM (DATE)</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">date_key</span></div>
+                <div class="db-row"><span class="name">full_date</span></div>
+                <div class="db-row"><span class="name">day</span></div>
+                <div class="db-row"><span class="name">month, quarter</span></div>
+                <div class="db-row"><span class="name">year</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_EMPLOYEE (Middle Right) -->
+          <foreignObject x="1080" y="410" width="280" height="145">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">EMPLOYEE DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">employee_key</span></div>
+                <div class="db-row"><span class="name">sales_employee_id</span></div>
+                <div class="db-row"><span class="name">sales_employee_name</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_PAYMENT_METHOD (Bottom Right) -->
+          <foreignObject x="1080" y="650" width="280" height="115">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">PAYMENT METHOD DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">payment_method_key</span></div>
+                <div class="db-row"><span class="name">payment_method</span></div>
+              </div>
+            </div>
+          </foreignObject>
+        </svg>
+      </div>
+    </section>
+
+    <!-- NGÔI SAO 2 -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Ngôi sao 2 — Sản lượng theo sản phẩm trong đơn (FACT_ORDER_ITEMS)</h2>
+        <p>Phục vụ PS2 và phân tích độ lệch sản lượng giữa các vùng miền. Mỗi dòng tương ứng một mặt hàng trong đơn.</p>
+      </div>
+      <div class="canvas">
+        <svg viewBox="0 0 1420 840" role="img" aria-label="Star schema sản lượng theo sản phẩm">
+          <!-- Connectors -->
+          <!-- Geography: (340, 215) -> FACT (540, 375) -->
+          <path class="edge-path" d="M 340 215 C 440 215, 440 375, 540 375"/>
+          <circle class="dot-marker" cx="340" cy="215" r="5"/>
+          <circle class="dot-marker" cx="540" cy="375" r="5"/>
+
+          <!-- Product: (340, 565) -> FACT (540, 406) -->
+          <path class="edge-path" d="M 340 565 C 440 565, 440 406, 540 406"/>
+          <circle class="dot-marker" cx="340" cy="565" r="5"/>
+          <circle class="dot-marker" cx="540" cy="406" r="5"/>
+
+          <!-- Date: (1080, 215) -> FACT (880, 344) -->
+          <path class="edge-path" d="M 1080 215 C 980 215, 980 344, 880 344"/>
+          <circle class="dot-marker" cx="1080" cy="215" r="5"/>
+          <circle class="dot-marker" cx="880" cy="344" r="5"/>
+
+          <!-- Promotion: (1080, 565) -> FACT (880, 437) -->
+          <path class="edge-path" d="M 1080 565 C 980 565, 980 437, 880 437"/>
+          <circle class="dot-marker" cx="1080" cy="565" r="5"/>
+          <circle class="dot-marker" cx="880" cy="437" r="5"/>
+
+          <!-- DIM_GEOGRAPHY (Top Left) -->
+          <foreignObject x="60" y="150" width="280" height="205">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">GEOGRAPHY DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="name">zip</span></div>
+                <div class="db-row"><span class="name">district</span></div>
+                <div class="db-row"><span class="name">city</span></div>
+                <div class="db-row"><span class="name">region</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_PRODUCT (Bottom Left) -->
+          <foreignObject x="60" y="470" width="280" height="270">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">PRODUCT DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">product_key</span></div>
+                <div class="db-row"><span class="name">product_id</span></div>
+                <div class="db-row"><span class="name">product_name</span></div>
+                <div class="db-row"><span class="name">category, segment</span></div>
+                <div class="db-row"><span class="name">size, color</span></div>
+                <div class="db-row"><span class="name">list_price</span></div>
+                <div class="db-row"><span class="name">cogs</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- FACT_ORDER_ITEMS (Center) -->
+          <foreignObject x="540" y="210" width="340" height="450">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header fact">FACT ORDER ITEMS</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">item_key</span></div>
+                <div class="db-row"><span class="name">item_id, order_id</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">order_date_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">product_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">promotion_key_1</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">promotion_key_2</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">purchased_quantity</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">returned_quantity</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">net_quantity</span></div>
+                <div class="db-row"><span class="name">unit_price</span></div>
+                <div class="db-row"><span class="name">discount_amount</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">gross_item_amount</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">item_sales_amount</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_DATE (Top Right) -->
+          <foreignObject x="1080" y="150" width="280" height="205">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">TIME DIM (DATE)</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">date_key</span></div>
+                <div class="db-row"><span class="name">full_date</span></div>
+                <div class="db-row"><span class="name">day, month</span></div>
+                <div class="db-row"><span class="name">quarter</span></div>
+                <div class="db-row"><span class="name">year</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_PROMOTION (Bottom Right) -->
+          <foreignObject x="1080" y="500" width="280" height="175">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">PROMOTION DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">promotion_key</span></div>
+                <div class="db-row"><span class="name">promo_id</span></div>
+                <div class="db-row"><span class="name">promo_name</span></div>
+                <div class="db-row"><span class="name">promo_type</span></div>
+              </div>
+            </div>
+          </foreignObject>
+        </svg>
+      </div>
+    </section>
+
+    <!-- NGÔI SAO 3 -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Ngôi sao 3 — Hoàn trả chi tiết (FACT_RETURNS)</h2>
+        <p>Phân tích chuyên sâu về tỷ lệ trả hàng, lý do trả và khoản hoàn tiền theo mặt hàng.</p>
+      </div>
+      <div class="canvas">
+        <svg viewBox="0 0 1420 780" role="img" aria-label="Star schema hoàn trả">
+          <!-- Connectors -->
+          <!-- Geography: (340, 205) -> FACT (540, 335) -->
+          <path class="edge-path" d="M 340 205 C 440 205, 440 335, 540 335"/>
+          <circle class="dot-marker" cx="340" cy="205" r="5"/>
+          <circle class="dot-marker" cx="540" cy="335" r="5"/>
+
+          <!-- Product: (340, 525) -> FACT (540, 366) -->
+          <path class="edge-path" d="M 340 525 C 440 525, 440 366, 540 366"/>
+          <circle class="dot-marker" cx="340" cy="525" r="5"/>
+          <circle class="dot-marker" cx="540" cy="366" r="5"/>
+
+          <!-- Date: (1080, 205) -> FACT (880, 304) -->
+          <path class="edge-path" d="M 1080 205 C 980 205, 980 304, 880 304"/>
+          <circle class="dot-marker" cx="1080" cy="205" r="5"/>
+          <circle class="dot-marker" cx="880" cy="304" r="5"/>
+
+          <!-- Return Reason: (1080, 525) -> FACT (880, 397) -->
+          <path class="edge-path" d="M 1080 525 C 980 525, 980 397, 880 397"/>
+          <circle class="dot-marker" cx="1080" cy="525" r="5"/>
+          <circle class="dot-marker" cx="880" cy="397" r="5"/>
+
+          <!-- DIM_GEOGRAPHY (Top Left) -->
+          <foreignObject x="60" y="140" width="280" height="205">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">GEOGRAPHY DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="name">zip</span></div>
+                <div class="db-row"><span class="name">district</span></div>
+                <div class="db-row"><span class="name">city</span></div>
+                <div class="db-row"><span class="name">region</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_PRODUCT (Bottom Left) -->
+          <foreignObject x="60" y="460" width="280" height="205">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">PRODUCT DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">product_key</span></div>
+                <div class="db-row"><span class="name">product_id</span></div>
+                <div class="db-row"><span class="name">product_name</span></div>
+                <div class="db-row"><span class="name">category</span></div>
+                <div class="db-row"><span class="name">list_price</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- FACT_RETURNS (Center) -->
+          <foreignObject x="540" y="200" width="340" height="340">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header fact">FACT RETURNS</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">return_key</span></div>
+                <div class="db-row"><span class="name">return_id, order_id</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">return_date_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">product_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">return_reason_key</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">return_quantity</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">refund_amount</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_DATE (Top Right) -->
+          <foreignObject x="1080" y="140" width="280" height="175">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">TIME DIM (DATE)</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">date_key</span></div>
+                <div class="db-row"><span class="name">full_date</span></div>
+                <div class="db-row"><span class="name">month, quarter</span></div>
+                <div class="db-row"><span class="name">year</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_RETURN_REASON (Bottom Right) -->
+          <foreignObject x="1080" y="460" width="280" height="145">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">RETURN REASON DIM</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">return_reason_key</span></div>
+                <div class="db-row"><span class="name">return_reason</span></div>
+              </div>
+            </div>
+          </foreignObject>
+        </svg>
+      </div>
+    </section>
+
+    <!-- GHI CHÚ THIẾT KẾ -->
+    <div class="notes">
+      <div class="note">
+        <strong>Không lặp doanh thu</strong>
+        <p><code>payment_value</code> và <code>net_revenue</code> chỉ nằm ở FACT_ORDERS. Đưa nguyên số tiền của đơn vào từng item sẽ làm tổng doanh thu bị nhân lên sai lệch.</p>
+      </div>
+      <div class="note">
+        <strong>Địa giới trong một Dimension</strong>
+        <p>ZIP, District, City và Region nằm chung trong DIM_GEOGRAPHY. Đây là đặc điểm của Star Schema chuẩn; Snowflake mới phân rã chúng thành nhiều bảng nhỏ.</p>
+      </div>
+      <div class="note">
+        <strong>Độ mịn (Grain) rõ ràng</strong>
+        <p>Fact Orders có grain là 1 đơn hàng; Fact Order Items có grain là 1 sản phẩm trong đơn; Fact Returns có grain là 1 dòng đổi trả hàng.</p>
+      </div>
+      <div class="note">
+        <strong>Khả năng mở rộng doanh nghiệp</strong>
+        <p>Nếu mở rộng toàn doanh nghiệp, tạo thêm FACT_INVENTORY_SNAPSHOT, FACT_SHIPMENTS; các bảng này tái sử dụng lại các Dimension (Conformed Dimensions) đã có.</p>
+      </div>
+    </div>
+
+    <footer>
+      Thiết kế Star Schema cho Data Warehouse — DAAI-N2.5 (IUH)
+    </footer>
+  </main>
+</body>
+</html>
