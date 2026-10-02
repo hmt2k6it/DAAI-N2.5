@@ -133,3 +133,45 @@ CREATE TABLE FACT_RETURNS (
     return_quantity INT,
     refund_amount DECIMAL(18,2)
 );
+
+-- -------------------------------------------------------------------------
+-- 3. TẠO BẢNG DATA MART (GOLD LAYER - PS5: ĐÁNH GIÁ ĐƠN VỊ KINH DOANH)
+-- -------------------------------------------------------------------------
+
+CREATE TABLE GOLD_UNIT_KPI (
+    unit_kpi_key INT PRIMARY KEY,
+    unit_id VARCHAR(50),
+    unit_type VARCHAR(50),
+    region VARCHAR(100),
+    city VARCHAR(100),
+    district VARCHAR(100),
+    
+    -- Thống kê quy mô
+    total_customers INT,
+    served_customers INT,
+    invoice_count INT,
+    customer_percentile_in_city DECIMAL(5,2),
+    customer_rank_in_city INT,
+    
+    -- Doanh thu & Chỉ số trung bình
+    gross_revenue DECIMAL(18,2),
+    refund_amount DECIMAL(18,2),
+    net_revenue DECIMAL(18,2),
+    revenue_per_customer DECIMAL(18,2),
+    revenue_per_invoice DECIMAL(18,2),
+    customer_activation_pct DECIMAL(5,2),
+    
+    -- Điểm thành phần KPI (chuẩn hóa thang điểm 0 - 100)
+    net_revenue_score DECIMAL(5,2),
+    served_customers_score DECIMAL(5,2),
+    revenue_per_customer_score DECIMAL(5,2),
+    revenue_per_invoice_score DECIMAL(5,2),
+    customer_activation_pct_score DECIMAL(5,2),
+    
+    -- Điểm tổng hợp, Xếp hạng & Đánh giá
+    kpi_score DECIMAL(5,2),
+    overall_rank INT,
+    performance_group VARCHAR(50),
+    recommendation VARCHAR(150)
+);
+
