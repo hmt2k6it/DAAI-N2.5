@@ -33,17 +33,6 @@ CREATE TABLE DIM_CUSTOMER (
     acquisition_channel VARCHAR(50)
 );
 
-CREATE TABLE DIM_EMPLOYEE (
-    employee_key INT PRIMARY KEY,
-    sales_employee_id VARCHAR(50),
-    sales_employee_name VARCHAR(100)
-);
-
-CREATE TABLE DIM_PAYMENT_METHOD (
-    payment_method_key INT PRIMARY KEY,
-    payment_method VARCHAR(50)
-);
-
 CREATE TABLE DIM_PRODUCT (
     product_key INT PRIMARY KEY,
     product_id VARCHAR(50),
@@ -56,18 +45,6 @@ CREATE TABLE DIM_PRODUCT (
     cogs DECIMAL(18,2)
 );
 
-CREATE TABLE DIM_PROMOTION (
-    promotion_key INT PRIMARY KEY,
-    promo_id VARCHAR(50),
-    promo_name VARCHAR(255),
-    promo_type VARCHAR(100)
-);
-
-CREATE TABLE DIM_RETURN_REASON (
-    return_reason_key INT PRIMARY KEY,
-    return_reason VARCHAR(255)
-);
-
 -- -------------------------------------------------------------------------
 -- 2. TẠO CÁC BẢNG FACT (CHỨA CHỈ SỐ ĐO LƯỜNG VÀ KHÓA NGOẠI)
 -- -------------------------------------------------------------------------
@@ -75,23 +52,17 @@ CREATE TABLE DIM_RETURN_REASON (
 -- NGÔI SAO 1: DOANH THU THEO ĐƠN HÀNG
 CREATE TABLE FACT_ORDERS (
     order_key INT PRIMARY KEY,
-    order_id VARCHAR(50), -- Degenerate dimension
+    order_id VARCHAR(50), -- Degenerate dimension (Mã đơn hàng)
     
     -- Foreign Keys
     order_date_key INT REFERENCES DIM_DATE(date_key),
     customer_key INT REFERENCES DIM_CUSTOMER(customer_key),
     geography_key INT REFERENCES DIM_GEOGRAPHY(geography_key),
-    employee_key INT REFERENCES DIM_EMPLOYEE(employee_key),
-    payment_method_key INT REFERENCES DIM_PAYMENT_METHOD(payment_method_key),
     
-    -- Attributes & Measures
+    -- Attributes & Base Measures (Doanh thu thuần net_revenue sẽ do tầng OLAP tự tính toán)
     order_status VARCHAR(50),
-    installments INT,
-    payment_value DECIMAL(18,2), -- Gross Revenue
-    refund_amount DECIMAL(18,2),
-    net_revenue DECIMAL(18,2),
-    order_count INT,
-    returned_order_count INT
+    payment_value DECIMAL(18,2), -- Gross Revenue (Doanh thu gộp)
+    refund_amount DECIMAL(18,2)  -- Refund Amount (Tiền hoàn trả)
 );
 
 -- NGÔI SAO 2: SẢN LƯỢNG THEO SẢN PHẨM TRONG ĐƠN
@@ -104,8 +75,6 @@ CREATE TABLE FACT_ORDER_ITEMS (
     order_date_key INT REFERENCES DIM_DATE(date_key),
     geography_key INT REFERENCES DIM_GEOGRAPHY(geography_key),
     product_key INT REFERENCES DIM_PRODUCT(product_key),
-    promotion_key_1 INT REFERENCES DIM_PROMOTION(promotion_key),
-    promotion_key_2 INT REFERENCES DIM_PROMOTION(promotion_key),
     
     -- Measures
     purchased_quantity INT,
@@ -127,7 +96,6 @@ CREATE TABLE FACT_RETURNS (
     return_date_key INT REFERENCES DIM_DATE(date_key),
     geography_key INT REFERENCES DIM_GEOGRAPHY(geography_key),
     product_key INT REFERENCES DIM_PRODUCT(product_key),
-    return_reason_key INT REFERENCES DIM_RETURN_REASON(return_reason_key),
     
     -- Measures
     return_quantity INT,
@@ -174,4 +142,3 @@ CREATE TABLE GOLD_UNIT_KPI (
     performance_group VARCHAR(50),
     recommendation VARCHAR(150)
 );
-
