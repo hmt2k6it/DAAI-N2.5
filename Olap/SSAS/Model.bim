@@ -662,7 +662,7 @@
           },
           {
             "name": "Unit Net Revenue",
-            "expression": "CALCULATE([Net Revenue], NOT(ISBLANK(dim_geography[unit_key])))",
+            "expression": "CALCULATE([Net Revenue], NOT(ISBLANK(fact_orders[unit_key])))",
             "formatString": "#,##0 ₫",
             "displayFolder": "PS5 - Văn phòng & Đại lý"
           },
