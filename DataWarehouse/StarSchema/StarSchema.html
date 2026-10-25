@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mô Hình Star Schema Tinh Gọn — Data Warehouse DAAI-N2.5</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-alt: #f1f5f9;
+      --header-orders: #0f2c35;
+      --header-items: #1e3a5f;
+      --header-dim: #1e293b;
+      --border: #e2e8f0;
+      --row-border: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --edge: #0284c7;
+      --pk-bg: #ecfdf5;
+      --pk-text: #059669;
+      --pk-border: #a7f3d0;
+      --fk-bg: #fffbeb;
+      --fk-text: #d97706;
+      --fk-border: #fde68a;
+      --m-bg: #eff6ff;
+      --m-text: #2563eb;
+      --m-border: #bfdbfe;
+      --shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 0%, #e0f2fe 0%, transparent 50%),
+        linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 28px 28px, 28px 28px;
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header, main {
+      width: min(1520px, 96vw);
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 40px 12px 24px;
+    }
+
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: #e0f2fe;
+      color: #0369a1;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      border: 1px solid #bae6fd;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(26px, 3.2vw, 40px);
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 1000px;
+      margin: 0 0 20px;
+      font-size: 15px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      background: #ffffff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      width: fit-content;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .legend-chip {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .legend-chip.pk { background: var(--pk-bg); color: var(--pk-text); border: 1px solid var(--pk-border); }
+    .legend-chip.fk { background: var(--fk-bg); color: var(--fk-text); border: 1px solid var(--fk-border); }
+    .legend-chip.m { background: var(--m-bg); color: var(--m-text); border: 1px solid var(--m-border); }
+
+    .dot-line {
+      width: 22px;
+      height: 3px;
+      background: var(--edge);
+      border-radius: 2px;
+      position: relative;
+    }
+    .dot-line::after {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: -3px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--edge);
+    }
+
+    .section {
+      margin: 28px 0 44px;
+      padding: 30px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+    }
+
+    .section-head {
+      margin-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: gap;
+      gap: 12px;
+    }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .tag-scope {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .canvas {
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      min-width: 1400px;
+      height: auto;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #edf2f7;
+    }
+
+    /* Database Table Card Styling */
+    .db-table {
+      width: 100%;
+      height: 100%;
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(0,0,0,0.04);
+      border: 1px solid #cbd5e1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-size: 12.5px;
+    }
+
+    .db-header {
+      background: var(--header-dim);
+      color: #ffffff;
+      padding: 10px 14px;
+      font-weight: 800;
+      font-size: 12.5px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      text-align: center;
+      border-bottom: 2px solid rgba(0,0,0,0.15);
+    }
+
+    .db-header.fact-orders {
+      background: var(--header-orders);
+      border-top: 4px solid #0284c7;
+    }
+
+    .db-header.fact-items {
+      background: var(--header-items);
+      border-top: 4px solid #10b981;
+    }
+
+    .db-header.unit {
+      background: #1e293b;
+      border-top: 4px solid #8b5cf6;
+    }
+
+    .db-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+    }
+
+    .db-row {
+      display: flex;
+      align-items: center;
+      padding: 6.5px 12px;
+      min-height: 29px;
+      border-bottom: 1px solid var(--row-border);
+      background: #ffffff;
+      color: var(--text-main);
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .db-row:nth-child(even) {
+      background: var(--card-alt);
+    }
+
+    .db-row:last-child {
+      border-bottom: none;
+    }
+
+    .db-row .name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .db-row .desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 6px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-right: 8px;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pill.pk {
+      background: var(--pk-bg);
+      color: var(--pk-text);
+      border: 1px solid var(--pk-border);
+    }
+
+    .pill.fk {
+      background: var(--fk-bg);
+      color: var(--fk-text);
+      border: 1px solid var(--fk-border);
+    }
+
+    .pill.measure {
+      background: var(--m-bg);
+      color: var(--m-text);
+      border: 1px solid var(--m-border);
+    }
+
+    /* Connector Edges */
+    .edge-path {
+      stroke: var(--edge);
+      stroke-width: 2.2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .dot-marker {
+      fill: var(--edge);
+      stroke: #ffffff;
+      stroke-width: 1.5;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin: 32px 0 50px;
+    }
+
+    .note {
+      padding: 22px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+
+    .note strong {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: #0f172a;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .note p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    footer {
+      padding: 24px 0 44px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge-top">Clean Star Schema Architecture</div>
+    <h1>Mô Hình Star Schema Tinh Gọn (2 Fact — 5 Dimension)</h1>
+    <p>
+      Kiến trúc kho dữ liệu được chuẩn hóa tối ưu theo trường phái Kimball: loại bỏ bảng dư thừa <code>FACT_RETURNS</code> 
+      và tách rời thực thể <code>DIM_BUSINESS_UNIT</code> độc lập. Dữ liệu hoàn trả được tích hợp đa hạt (multi-grain) trực tiếp vào 2 bảng Fact, 
+      đảm bảo hiệu năng truy vấn tối ưu và đồng bộ hoàn hảo với tầng ngữ nghĩa Cube OLAP.
+    </p>
+    <div class="legend">
+      <span><i class="dot-line"></i> Quan hệ Khóa chính — Khóa ngoại (1:N)</span>
+      <span><span class="legend-chip pk">PK</span> Primary Key</span>
+      <span><span class="legend-chip fk">FK</span> Foreign Key</span>
+      <span><span class="legend-chip m">M</span> Measure (Chỉ số đo lường)</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- NGÔI SAO 1: DOANH THU & GIAO DỊCH ĐƠN HÀNG -->
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>Ngôi sao 1 — Doanh thu & Giao dịch Đơn hàng (FACT_ORDERS)</h2>
+          <p>Bảng Fact mức đơn hàng (Order Grain). Kết nối liên thông Khách hàng, Địa bàn, Đơn vị kinh doanh và Thời gian.</p>
+        </div>
+        <div class="tag-scope">Phục vụ: PS1 · PS3 · PS4 · PS5</div>
+      </div>
+      <div class="canvas">
+        <svg viewBox="0 0 1480 720" role="img" aria-label="Star schema doanh thu theo đơn hàng">
+          <!-- Connectors -->
+          <!-- Customer: (350, 200) -> FACT (570, 270) -->
+          <path class="edge-path" d="M 350 200 C 460 200, 460 270, 570 270"/>
+          <circle class="dot-marker" cx="350" cy="200" r="5"/>
+          <circle class="dot-marker" cx="570" cy="270" r="5"/>
+
+          <!-- Geography: (350, 490) -> FACT (570, 400) -->
+          <path class="edge-path" d="M 350 490 C 460 490, 460 400, 570 400"/>
+          <circle class="dot-marker" cx="350" cy="490" r="5"/>
+          <circle class="dot-marker" cx="570" cy="400" r="5"/>
+
+          <!-- Date: (1130, 200) -> FACT (910, 270) -->
+          <path class="edge-path" d="M 1130 200 C 1020 200, 1020 270, 910 270"/>
+          <circle class="dot-marker" cx="1130" cy="200" r="5"/>
+          <circle class="dot-marker" cx="910" cy="270" r="5"/>
+
+          <!-- Business Unit: (1130, 490) -> FACT (910, 400) -->
+          <path class="edge-path" d="M 1130 490 C 1020 490, 1020 400, 910 400"/>
+          <circle class="dot-marker" cx="1130" cy="490" r="5"/>
+          <circle class="dot-marker" cx="910" cy="400" r="5"/>
+
+          <!-- DIM_CUSTOMER (Top Left) -->
+          <foreignObject x="70" y="80" width="280" height="240">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">DIM_CUSTOMER</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">customer_key</span></div>
+                <div class="db-row"><span class="name">customer_id</span></div>
+                <div class="db-row"><span class="name">signup_date</span></div>
+                <div class="db-row"><span class="name">gender</span></div>
+                <div class="db-row"><span class="name">age_group</span></div>
+                <div class="db-row"><span class="name">acquisition_channel</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_GEOGRAPHY (Bottom Left) -->
+          <foreignObject x="70" y="380" width="280" height="235">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">DIM_GEOGRAPHY</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="name">zip</span><span class="desc">Mã bưu chính</span></div>
+                <div class="db-row"><span class="name">district</span><span class="desc">Quận/Huyện</span></div>
+                <div class="db-row"><span class="name">city</span><span class="desc">Thành phố</span></div>
+                <div class="db-row"><span class="name">region</span><span class="desc">Vùng kinh tế</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">unit_key</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- FACT_ORDERS (Center) -->
+          <foreignObject x="570" y="160" width="340" height="385">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header fact-orders">FACT_ORDERS (Trung tâm)</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">order_key</span></div>
+                <div class="db-row"><span class="name">order_id</span><span class="desc">Degenerate Dim</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">order_date_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">customer_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">unit_key</span><span class="desc">(PS5)</span></div>
+                <div class="db-row"><span class="name">order_status</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">payment_value</span><span class="desc">(Gross)</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">refund_amount</span><span class="desc">(Hoàn trả)</span></div>
+                <div class="db-row" style="background:#f0fdf4;"><span class="pill pk" style="background:#dcfce7; color:#15803d; border-color:#86efac;">CALC</span><span class="name">net_revenue</span><span class="desc">(Doanh thu thuần)</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_DATE (Top Right) -->
+          <foreignObject x="1130" y="80" width="280" height="240">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">DIM_DATE</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">date_key</span></div>
+                <div class="db-row"><span class="name">full_date</span></div>
+                <div class="db-row"><span class="name">day, month</span></div>
+                <div class="db-row"><span class="name">quarter</span></div>
+                <div class="db-row"><span class="name">year</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_BUSINESS_UNIT (Bottom Right) -->
+          <foreignObject x="1130" y="350" width="310" height="340">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header unit">DIM_BUSINESS_UNIT (PS5)</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">unit_key</span></div>
+                <div class="db-row"><span class="name">unit_id</span><span class="desc">Mã đơn vị</span></div>
+                <div class="db-row"><span class="name">unit_name</span><span class="desc">Tên đơn vị</span></div>
+                <div class="db-row"><span class="name">unit_type</span><span class="desc">Văn phòng / Đại lý</span></div>
+                <div class="db-row"><span class="name">region, city, district</span></div>
+                <div class="db-row"><span class="name">kpi_score</span><span class="desc">Điểm KPI 2 trụ cột</span></div>
+                <div class="db-row"><span class="name">overall_rank</span><span class="desc">Thứ hạng nội bộ</span></div>
+                <div class="db-row"><span class="name">unit_performance_kpi</span><span class="desc">Likert 4 mức</span></div>
+                <div class="db-row"><span class="name">recommendation</span><span class="desc">Đề xuất giải pháp</span></div>
+              </div>
+            </div>
+          </foreignObject>
+        </svg>
+      </div>
+    </section>
+
+    <!-- NGÔI SAO 2: SẢN LƯỢNG CHI TIẾT THEO SẢN PHẨM -->
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>Ngôi sao 2 — Sản lượng Sản phẩm Chi tiết (FACT_ORDER_ITEMS)</h2>
+          <p>Bảng Fact mức từng dòng sản phẩm trong đơn (Line Item Grain). So sánh sản lượng mua, trả và thực bán theo danh mục.</p>
+        </div>
+        <div class="tag-scope">Phục vụ: PS2</div>
+      </div>
+      <div class="canvas">
+        <svg viewBox="0 0 1480 660" role="img" aria-label="Star schema sản lượng theo sản phẩm">
+          <!-- Connectors -->
+          <!-- Geography: (350, 190) -> FACT (570, 270) -->
+          <path class="edge-path" d="M 350 190 C 460 190, 460 270, 570 270"/>
+          <circle class="dot-marker" cx="350" cy="190" r="5"/>
+          <circle class="dot-marker" cx="570" cy="270" r="5"/>
+
+          <!-- Product: (350, 480) -> FACT (570, 390) -->
+          <path class="edge-path" d="M 350 480 C 460 480, 460 390, 570 390"/>
+          <circle class="dot-marker" cx="350" cy="480" r="5"/>
+          <circle class="dot-marker" cx="570" cy="390" r="5"/>
+
+          <!-- Date: (1130, 320) -> FACT (910, 320) -->
+          <path class="edge-path" d="M 1130 320 C 1020 320, 1020 320, 910 320"/>
+          <circle class="dot-marker" cx="1130" cy="320" r="5"/>
+          <circle class="dot-marker" cx="910" cy="320" r="5"/>
+
+          <!-- DIM_GEOGRAPHY (Top Left) -->
+          <foreignObject x="70" y="80" width="280" height="225">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">DIM_GEOGRAPHY</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="name">zip</span></div>
+                <div class="db-row"><span class="name">district</span></div>
+                <div class="db-row"><span class="name">city</span></div>
+                <div class="db-row"><span class="name">region</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_PRODUCT (Bottom Left) -->
+          <foreignObject x="70" y="340" width="280" height="280">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">DIM_PRODUCT</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">product_key</span></div>
+                <div class="db-row"><span class="name">product_id</span></div>
+                <div class="db-row"><span class="name">product_name</span></div>
+                <div class="db-row"><span class="name">category, segment</span></div>
+                <div class="db-row"><span class="name">size, color</span></div>
+                <div class="db-row"><span class="name">price, cogs</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- FACT_ORDER_ITEMS (Center) -->
+          <foreignObject x="570" y="140" width="340" height="370">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header fact-items">FACT_ORDER_ITEMS (Trung tâm)</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">item_key</span></div>
+                <div class="db-row"><span class="name">item_id, order_id</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">order_date_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">geography_key</span></div>
+                <div class="db-row"><span class="pill fk">FK</span><span class="name">product_key</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">purchased_quantity</span><span class="desc">(Số lượng mua)</span></div>
+                <div class="db-row"><span class="pill measure">M</span><span class="name">returned_quantity</span><span class="desc">(Số lượng trả)</span></div>
+                <div class="db-row" style="background:#f0fdf4;"><span class="pill pk" style="background:#dcfce7; color:#15803d; border-color:#86efac;">CALC</span><span class="name">net_quantity</span><span class="desc">(Sản lượng thực)</span></div>
+              </div>
+            </div>
+          </foreignObject>
+
+          <!-- DIM_DATE (Right Center) -->
+          <foreignObject x="1130" y="210" width="280" height="225">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="db-table">
+              <div class="db-header">DIM_DATE</div>
+              <div class="db-body">
+                <div class="db-row"><span class="pill pk">PK</span><span class="name">date_key</span></div>
+                <div class="db-row"><span class="name">full_date</span></div>
+                <div class="db-row"><span class="name">day, month</span></div>
+                <div class="db-row"><span class="name">quarter</span></div>
+                <div class="db-row"><span class="name">year</span></div>
+              </div>
+            </div>
+          </foreignObject>
+        </svg>
+      </div>
+    </section>
+
+    <!-- GHI CHÚ KIẾN TRÚC & QUYẾT ĐỊNH THIẾT KẾ -->
+    <div class="notes">
+      <div class="note">
+        <strong>1. Loại bỏ FACT_RETURNS & Tích hợp Đa hạt (Multi-Grain Integration)</strong>
+        <p>Bảng <code>FACT_RETURNS</code> riêng rẽ bị loại bỏ để tránh phân mảnh mô hình và bẫy Fan-trap. Dữ liệu hoàn trả từ <code>returns_silver</code> được tích hợp trực tiếp: <em>tiền hoàn</em> vào <code>FACT_ORDERS</code> (phục vụ PS1, PS3, PS4, PS5) và <em>số lượng hoàn</em> vào <code>FACT_ORDER_ITEMS</code> (phục vụ PS2).</p>
+      </div>
+      <div class="note">
+        <strong>2. Tách biệt Thực thể DIM_BUSINESS_UNIT Chuẩn Hóa (PS5)</strong>
+        <p>Thực thể Đơn vị kinh doanh (42 Văn phòng + 56 Đại lý) được tách riêng thành một Dimension quan hệ chuẩn. Đánh giá năng lực dựa trên 2 trụ cột giá trị cốt lõi (ARPU + AOV), phân nhóm hiệu suất theo Tứ phân vị Likert 4 mức chuẩn xác và đề xuất chiến lược tối ưu mạng lưới phân phối.</p>
+      </div>
+      <div class="note">
+        <strong>3. Bảo toàn Granularity & Ngăn ngừa Sai lệch Doanh thu</strong>
+        <p><code>payment_value</code> và <code>net_revenue</code> chỉ lưu trữ tại cấp độ đơn hàng (<code>FACT_ORDERS</code>). Tuyệt đối không gán tiền thanh toán vào từng mặt hàng trong <code>FACT_ORDER_ITEMS</code> để triệt tiêu nguy cơ nhân đôi tổng doanh thu khi gom nhóm.</p>
+      </div>
+      <div class="note">
+        <strong>4. Phân cấp Địa giới Đa tầng Đồng bộ</strong>
+        <p><code>DIM_GEOGRAPHY</code> quản lý đầy đủ 9,813 mã bưu chính (ZIP), Quận/Huyện, Tỉnh/Thành phố và 3 Vùng kinh tế, đồng thời ánh xạ trực tiếp khóa <code>unit_key</code> về Đơn vị kinh doanh phụ trách địa bàn.</p>
+      </div>
+    </div>
+
+    <footer>
+      Kiến Trúc Star Schema Tinh Gọn (Lean Enterprise DWH) — DAAI-N2.5 (Khoa CNTT - ĐH Công nghiệp TP.HCM)
+    </footer>
+  </main>
+</body>
+</html>
