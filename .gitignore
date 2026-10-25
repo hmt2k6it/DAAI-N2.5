@@ -1,0 +1,32 @@
+# Node.js / Cube.js
+node_modules/
+Olap/node_modules/
+.cube/
+Olap/.cube/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Environment Variables
+.env
+.env.local
+.env.metabase
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Scratch & Temporary Testing Scripts
+scratch/
+scratch_*.py
+
+# SSAS User Options (Local Machine Specific)
+*.tmuo
