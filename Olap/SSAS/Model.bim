@@ -1,0 +1,1126 @@
+{
+  "name": "DAAI_OLAP",
+  "compatibilityLevel": 1500,
+  "model": {
+    "culture": "en-US",
+    "dataSources": [
+      {
+        "name": "SqlServerLocal",
+        "connectionString": "Provider=MSOLEDBSQL;Data Source=localhost;Initial Catalog=datawarehouse;Integrated Security=SSPI;Trust Server Certificate=True;",
+        "impersonationMode": "impersonateServiceAccount"
+      }
+    ],
+    "tables": [
+      {
+        "name": "dim_date",
+        "columns": [
+          {
+            "name": "date_key",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "date_key"
+          },
+          {
+            "name": "full_date",
+            "dataType": "dateTime",
+            "sourceColumn": "full_date",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "day",
+            "dataType": "int64",
+            "sourceColumn": "day"
+          },
+          {
+            "name": "month",
+            "dataType": "int64",
+            "sourceColumn": "month"
+          },
+          {
+            "name": "quarter",
+            "dataType": "int64",
+            "sourceColumn": "quarter"
+          },
+          {
+            "name": "year",
+            "dataType": "int64",
+            "sourceColumn": "year"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_date-Partition",
+            "mode": "import",
+            "source": {
+              "type": "query",
+              "query": "SELECT date_key, full_date, [day], [month], [quarter], [year] FROM dbo.dim_date",
+              "dataSource": "SqlServerLocal"
+            }
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Date Hierarchy",
+            "levels": [
+              {
+                "name": "Year",
+                "ordinal": 0,
+                "column": "year"
+              },
+              {
+                "name": "Quarter",
+                "ordinal": 1,
+                "column": "quarter"
+              },
+              {
+                "name": "Month",
+                "ordinal": 2,
+                "column": "month"
+              },
+              {
+                "name": "Full Date",
+                "ordinal": 3,
+                "column": "full_date"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "dim_customer",
+        "columns": [
+          {
+            "name": "customer_key",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "customer_key"
+          },
+          {
+            "name": "customer_id",
+            "dataType": "string",
+            "sourceColumn": "customer_id"
+          },
+          {
+            "name": "signup_date",
+            "dataType": "dateTime",
+            "sourceColumn": "signup_date",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "gender",
+            "dataType": "string",
+            "sourceColumn": "gender"
+          },
+          {
+            "name": "age_group",
+            "dataType": "string",
+            "sourceColumn": "age_group"
+          },
+          {
+            "name": "acquisition_channel",
+            "dataType": "string",
+            "sourceColumn": "acquisition_channel"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_customer-Partition",
+            "mode": "import",
+            "source": {
+              "type": "query",
+              "query": "SELECT customer_key, customer_id, signup_date, gender, age_group, acquisition_channel FROM dbo.dim_customer",
+              "dataSource": "SqlServerLocal"
+            }
+          }
+        ]
+      },
+      {
+        "name": "dim_geography",
+        "columns": [
+          {
+            "name": "geography_key",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "geography_key"
+          },
+          {
+            "name": "zip",
+            "dataType": "string",
+            "sourceColumn": "zip"
+          },
+          {
+            "name": "district",
+            "dataType": "string",
+            "sourceColumn": "district"
+          },
+          {
+            "name": "city",
+            "dataType": "string",
+            "sourceColumn": "city"
+          },
+          {
+            "name": "region",
+            "dataType": "string",
+            "sourceColumn": "region"
+          },
+          {
+            "name": "unit_key",
+            "dataType": "int64",
+            "sourceColumn": "unit_key"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_geography-Partition",
+            "mode": "import",
+            "source": {
+              "type": "query",
+              "query": "SELECT geography_key, zip, district, city, region, unit_key FROM dbo.dim_geography",
+              "dataSource": "SqlServerLocal"
+            }
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Geography Hierarchy",
+            "levels": [
+              {
+                "name": "Region",
+                "ordinal": 0,
+                "column": "region"
+              },
+              {
+                "name": "City",
+                "ordinal": 1,
+                "column": "city"
+              },
+              {
+                "name": "District",
+                "ordinal": 2,
+                "column": "district"
+              },
+              {
+                "name": "Zip",
+                "ordinal": 3,
+                "column": "zip"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "dim_product",
+        "columns": [
+          {
+            "name": "product_key",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "product_key"
+          },
+          {
+            "name": "product_id",
+            "dataType": "string",
+            "sourceColumn": "product_id"
+          },
+          {
+            "name": "product_name",
+            "dataType": "string",
+            "sourceColumn": "product_name"
+          },
+          {
+            "name": "category",
+            "dataType": "string",
+            "sourceColumn": "category"
+          },
+          {
+            "name": "segment",
+            "dataType": "string",
+            "sourceColumn": "segment"
+          },
+          {
+            "name": "size",
+            "dataType": "string",
+            "sourceColumn": "size"
+          },
+          {
+            "name": "color",
+            "dataType": "string",
+            "sourceColumn": "color"
+          },
+          {
+            "name": "price",
+            "dataType": "double",
+            "sourceColumn": "price"
+          },
+          {
+            "name": "cogs",
+            "dataType": "double",
+            "sourceColumn": "cogs"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_product-Partition",
+            "mode": "import",
+            "source": {
+              "type": "query",
+              "query": "SELECT product_key, product_id, product_name, category, segment, size, color, price, cogs FROM dbo.dim_product",
+              "dataSource": "SqlServerLocal"
+            }
+          }
+        ]
+      },
+      {
+        "name": "dim_business_unit",
+        "columns": [
+          {
+            "name": "unit_key",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "unit_key",
+            "isHidden": true
+          },
+          {
+            "name": "unit_id",
+            "dataType": "string",
+            "sourceColumn": "unit_id"
+          },
+          {
+            "name": "unit_name",
+            "dataType": "string",
+            "sourceColumn": "unit_name"
+          },
+          {
+            "name": "unit_type",
+            "dataType": "string",
+            "sourceColumn": "unit_type"
+          },
+          {
+            "name": "region",
+            "dataType": "string",
+            "sourceColumn": "region"
+          },
+          {
+            "name": "city",
+            "dataType": "string",
+            "sourceColumn": "city"
+          },
+          {
+            "name": "district",
+            "dataType": "string",
+            "sourceColumn": "district"
+          },
+          {
+            "name": "kpi_score",
+            "dataType": "double",
+            "sourceColumn": "kpi_score",
+            "isHidden": true
+          },
+          {
+            "name": "overall_rank",
+            "dataType": "int64",
+            "sourceColumn": "overall_rank",
+            "isHidden": true
+          },
+          {
+            "name": "unit_performance_kpi",
+            "dataType": "string",
+            "sourceColumn": "unit_performance_kpi",
+            "isHidden": true
+          },
+          {
+            "name": "recommendation",
+            "dataType": "string",
+            "sourceColumn": "recommendation",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_business_unit-Partition",
+            "mode": "import",
+            "source": {
+              "type": "query",
+              "query": "SELECT [unit_key], [unit_id], [unit_name], [unit_type], [region], [city], [district], [kpi_score], [overall_rank], [unit_performance_kpi], [recommendation] FROM [dbo].[dim_business_unit]",
+              "dataSource": "SqlServerLocal"
+            }
+          }
+        ]
+      },
+      {
+        "name": "fact_orders",
+        "columns": [
+          {
+            "name": "order_key",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "order_key"
+          },
+          {
+            "name": "order_id",
+            "dataType": "string",
+            "sourceColumn": "order_id"
+          },
+          {
+            "name": "order_date_key",
+            "dataType": "int64",
+            "sourceColumn": "order_date_key"
+          },
+          {
+            "name": "customer_key",
+            "dataType": "int64",
+            "sourceColumn": "customer_key"
+          },
+          {
+            "name": "geography_key",
+            "dataType": "int64",
+            "sourceColumn": "geography_key"
+          },
+          {
+            "name": "unit_key",
+            "dataType": "int64",
+            "sourceColumn": "unit_key"
+          },
+          {
+            "name": "order_status",
+            "dataType": "string",
+            "sourceColumn": "order_status"
+          },
+          {
+            "name": "payment_value",
+            "dataType": "double",
+            "sourceColumn": "payment_value"
+          },
+          {
+            "name": "refund_amount",
+            "dataType": "double",
+            "sourceColumn": "refund_amount"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_orders-Partition",
+            "mode": "import",
+            "source": {
+              "type": "query",
+              "query": "SELECT order_key, order_id, order_date_key, customer_key, geography_key, unit_key, order_status, payment_value, refund_amount FROM dbo.fact_orders WHERE order_status IN ('delivered', 'returned')",
+              "dataSource": "SqlServerLocal"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Gross Revenue",
+            "expression": "SUM(fact_orders[payment_value])",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS1 - Doanh thu & Địa bàn"
+          },
+          {
+            "name": "Refund Amount",
+            "expression": "SUM(fact_orders[refund_amount])",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS1 - Doanh thu & Địa bàn"
+          },
+          {
+            "name": "Net Revenue",
+            "expression": "[Gross Revenue] - [Refund Amount]",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS1 - Doanh thu & Địa bàn; PS4 - Tăng trưởng & Ma trận"
+          },
+          {
+            "name": "Revenue Share Pct KPI",
+            "expression": [
+              "DIVIDE([Net Revenue], CALCULATE([Net Revenue], REMOVEFILTERS(dim_geography)), 0)"
+            ],
+            "formatString": "0.00%",
+            "displayFolder": "PS1 - Doanh thu & Địa bàn; PS4 - Tăng trưởng & Ma trận"
+          },
+          {
+            "name": "Revenue Group",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[district]),",
+              "    SWITCH(",
+              "        TRUE(),",
+              "        [Revenue Share Pct KPI] >= 0.00227, \"4. Xuất sắc\",",
+              "        [Revenue Share Pct KPI] >= 0.00178, \"3. Tốt\",",
+              "        [Revenue Share Pct KPI] >= 0.00141, \"2. Trung bình\",",
+              "        \"1. Thấp\"",
+              "    ),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[city]),",
+              "        SWITCH(",
+              "            TRUE(),",
+              "            [Revenue Share Pct KPI] >= 0.0324, \"4. Xuất sắc\",",
+              "            [Revenue Share Pct KPI] >= 0.0248, \"3. Tốt\",",
+              "            [Revenue Share Pct KPI] >= 0.0153, \"2. Trung bình\",",
+              "            \"1. Thấp\"",
+              "        ),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[region]),",
+              "            SWITCH(",
+              "                TRUE(),",
+              "                [Revenue Share Pct KPI] >= 0.35, \"Cao\",",
+              "                [Revenue Share Pct KPI] >= 0.25, \"Trung bình\",",
+              "                \"Thấp\"",
+              "            ),",
+              "            BLANK()",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "displayFolder": "PS1 - Doanh thu & Địa bàn"
+          },
+          {
+            "name": "Order Count",
+            "expression": "DISTINCTCOUNT(fact_orders[order_id])",
+            "formatString": "#,##0",
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "Customer Count",
+            "expression": "DISTINCTCOUNT(fact_orders[customer_key])",
+            "formatString": "#,##0",
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "Returned Order Count",
+            "expression": "CALCULATE(DISTINCTCOUNT(fact_orders[order_id]), fact_orders[refund_amount] > 0)",
+            "formatString": "#,##0",
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "AOV",
+            "expression": "DIVIDE([Net Revenue], [Order Count], 0)",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "ARPU",
+            "expression": "DIVIDE([Net Revenue], [Customer Count], 0)",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "Orders Per Customer",
+            "expression": "DIVIDE([Order Count], [Customer Count], 0)",
+            "formatString": "0.00",
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "Returned Order Pct",
+            "expression": "DIVIDE([Returned Order Count], [Order Count], 0)",
+            "formatString": "0.00%",
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "AOV Group",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[district]),",
+              "    SWITCH(",
+              "        TRUE(),",
+              "        [AOV] >= 24822, \"4. Xuất sắc\",",
+              "        [AOV] >= 23730, \"3. Tốt\",",
+              "        [AOV] >= 22548, \"2. Trung bình\",",
+              "        \"1. Thấp\"",
+              "    ),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[city]),",
+              "        SWITCH(",
+              "            TRUE(),",
+              "            [AOV] >= 24520, \"4. Xuất sắc\",",
+              "            [AOV] >= 23880, \"3. Tốt\",",
+              "            [AOV] >= 21240, \"2. Trung bình\",",
+              "            \"1. Thấp\"",
+              "        ),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[region]),",
+              "            SWITCH(",
+              "                TRUE(),",
+              "                [AOV] >= 24000, \"Cao\",",
+              "                [AOV] >= 22000, \"Trung bình\",",
+              "                \"Thấp\"",
+              "            ),",
+              "            BLANK()",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "Orders Per Customer Group",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[district]),",
+              "    SWITCH(",
+              "        TRUE(),",
+              "        [Orders Per Customer] >= 7.50, \"4. Xuất sắc\",",
+              "        [Orders Per Customer] >= 5.87, \"3. Tốt\",",
+              "        [Orders Per Customer] >= 4.79, \"2. Trung bình\",",
+              "        \"1. Thấp\"",
+              "    ),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[city]),",
+              "        SWITCH(",
+              "            TRUE(),",
+              "            [Orders Per Customer] >= 10.69, \"4. Xuất sắc\",",
+              "            [Orders Per Customer] >= 6.69, \"3. Tốt\",",
+              "            [Orders Per Customer] >= 6.28, \"2. Trung bình\",",
+              "            \"1. Thấp\"",
+              "        ),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[region]),",
+              "            SWITCH(",
+              "                TRUE(),",
+              "                [Orders Per Customer] >= 8.00, \"Cao\",",
+              "                [Orders Per Customer] >= 5.50, \"Trung bình\",",
+              "                \"Thấp\"",
+              "            ),",
+              "            BLANK()",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "YoY Growth Pct",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_date[year]),",
+              "    VAR Cy = SELECTEDVALUE(dim_date[year])",
+              "    VAR CurrentRev = [Net Revenue]",
+              "    VAR Py = CALCULATE([Net Revenue], REMOVEFILTERS(dim_date[year]), dim_date[year] = Cy - 1)",
+              "    RETURN IF(Cy >= 2014 && NOT ISBLANK(CurrentRev) && NOT ISBLANK(Py) && Py > 0, DIVIDE(CurrentRev - Py, Py)),",
+              "    ",
+              "    IF(",
+              "        HASONEVALUE(dim_date[year]) && SELECTEDVALUE(dim_date[year]) >= 2014,",
+              "        VAR Cy = SELECTEDVALUE(dim_date[year])",
+              "        VAR CurrentRev = [Net Revenue]",
+              "        VAR Py = CALCULATE([Net Revenue], REMOVEFILTERS(dim_date[year]), dim_date[year] = Cy - 1)",
+              "        RETURN IF(NOT ISBLANK(CurrentRev) && NOT ISBLANK(Py) && Py > 0, DIVIDE(CurrentRev - Py, Py)),",
+              "",
+              "        AVERAGEX(",
+              "            FILTER(",
+              "                VALUES(dim_date[year]),",
+              "                dim_date[year] >= 2014 && dim_date[year] <= 2022",
+              "            ),",
+              "            VAR Cy = dim_date[year]",
+              "            VAR CurrentRev = CALCULATE([Net Revenue], dim_date[year] = Cy)",
+              "            VAR Py = CALCULATE([Net Revenue], REMOVEFILTERS(dim_date[year]), dim_date[year] = Cy - 1)",
+              "            RETURN IF(NOT ISBLANK(CurrentRev) && NOT ISBLANK(Py) && Py > 0, DIVIDE(CurrentRev - Py, Py))",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "formatString": "0.00%",
+            "displayFolder": "PS4 - Tăng trưởng & Ma trận"
+          },
+          {
+            "name": "Recommend Strategy",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[region]) || ISINSCOPE(dim_geography[city]) || ISINSCOPE(dim_geography[district]),",
+              "    VAR BenchRev = ",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[district]),",
+              "            MEDIANX(CALCULATETABLE(VALUES(dim_geography[district]), ALLSELECTED(dim_geography[district])), [Net Revenue]),",
+              "            IF(",
+              "                ISINSCOPE(dim_geography[city]),",
+              "                MEDIANX(CALCULATETABLE(VALUES(dim_geography[city]), ALLSELECTED(dim_geography[city])), [Net Revenue]),",
+              "                CALCULATE([Net Revenue], ALLSELECTED(dim_geography[region])) / COUNTROWS(ALLSELECTED(dim_geography[region]))",
+              "            )",
+              "        )",
+              "    VAR BenchGrowth = ",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[district]),",
+              "            MEDIANX(CALCULATETABLE(VALUES(dim_geography[district]), ALLSELECTED(dim_geography[district])), [YoY Growth Pct]),",
+              "            IF(",
+              "                ISINSCOPE(dim_geography[city]),",
+              "                MEDIANX(CALCULATETABLE(VALUES(dim_geography[city]), ALLSELECTED(dim_geography[city])), [YoY Growth Pct]),",
+              "                AVERAGEX(ALLSELECTED(dim_geography[region]), [YoY Growth Pct])",
+              "            )",
+              "        )",
+              "    RETURN",
+              "    IF(",
+              "        ISBLANK(BenchRev) || ISBLANK(BenchGrowth),",
+              "        BLANK(),",
+              "        SWITCH(",
+              "            TRUE(),",
+              "            [Net Revenue] >= BenchRev && [YoY Growth Pct] >= BenchGrowth, \"Ưu tiên đầu tư & Mở rộng\",",
+              "            [Net Revenue] >= BenchRev && [YoY Growth Pct] < BenchGrowth, \"Duy trì thị phần & Tối ưu hiệu quả\",",
+              "            [Net Revenue] < BenchRev && [YoY Growth Pct] >= BenchGrowth, \"Ưu tiên đầu tư có chọn lọc\",",
+              "            \"Tái phân bổ nguồn lực\"",
+              "        )",
+              "    ),",
+              "    BLANK()",
+              ")"
+            ],
+            "displayFolder": "PS4 - Tăng trưởng & Ma trận"
+          },
+          {
+            "name": "Unit Net Revenue",
+            "expression": "CALCULATE([Net Revenue], NOT(ISBLANK(dim_geography[unit_key])))",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          },
+          {
+            "name": "Unit Invoice Count",
+            "expression": "CALCULATE(DISTINCTCOUNT(fact_orders[order_id]), NOT(ISBLANK(fact_orders[unit_key])))",
+            "formatString": "#,##0",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          },
+          {
+            "name": "Unit Served Customers",
+            "expression": "CALCULATE(DISTINCTCOUNT(fact_orders[customer_key]), NOT(ISBLANK(fact_orders[unit_key])))",
+            "formatString": "#,##0",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          },
+          {
+            "name": "Revenue Per Customer",
+            "expression": "DIVIDE([Unit Net Revenue], [Unit Served Customers], 0)",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          },
+          {
+            "name": "Revenue Per Invoice",
+            "expression": "DIVIDE([Unit Net Revenue], [Unit Invoice Count], 0)",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          },
+          {
+            "name": "ARPU Group",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[district]),",
+              "    SWITCH(",
+              "        TRUE(),",
+              "        [ARPU] >= 180327, \"4. Xuất sắc\",",
+              "        [ARPU] >= 139122, \"3. Tốt\",",
+              "        [ARPU] >= 114072, \"2. Trung bình\",",
+              "        \"1. Thấp\"",
+              "    ),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[city]),",
+              "        SWITCH(",
+              "            TRUE(),",
+              "            [ARPU] >= 224570, \"4. Xuất sắc\",",
+              "            [ARPU] >= 160780, \"3. Tốt\",",
+              "            [ARPU] >= 152900, \"2. Trung bình\",",
+              "            \"1. Thấp\"",
+              "        ),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[region]),",
+              "            SWITCH(",
+              "                TRUE(),",
+              "                [ARPU] >= 180000, \"Cao\",",
+              "                [ARPU] >= 135000, \"Trung bình\",",
+              "                \"Thấp\"",
+              "            ),",
+              "            BLANK()",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "displayFolder": "PS3 - Khách hàng & AOV"
+          },
+          {
+            "name": "Refund Value Pct",
+            "expression": [
+              "DIVIDE([Refund Amount], [Gross Revenue], 0)"
+            ],
+            "formatString": "0.00%",
+            "displayFolder": "PS1 - Doanh thu & Địa bàn"
+          },
+          {
+            "name": "Revenue Rank",
+            "expression": [
+              "VAR CurRev = ROUND([Net Revenue], 2)",
+              "RETURN",
+              "IF(",
+              "    ISBLANK(CurRev),",
+              "    BLANK(),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[district]) || HASONEVALUE(dim_geography[district]),",
+              "        RANKX(ALL(dim_geography[district], dim_geography[city], dim_geography[region]), ROUND([Net Revenue], 2), CurRev, DESC, Dense),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[city]) || (HASONEVALUE(dim_geography[city]) && NOT HASONEVALUE(dim_geography[district])),",
+              "            RANKX(ALL(dim_geography[city], dim_geography[region]), ROUND([Net Revenue], 2), CurRev, DESC, Dense),",
+              "            IF(",
+              "                ISINSCOPE(dim_geography[region]) || HASONEVALUE(dim_geography[region]),",
+              "                RANKX(ALL(dim_geography[region]), ROUND([Net Revenue], 2), CurRev, DESC, Dense),",
+              "                BLANK()",
+              "            )",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "formatString": "#,##0",
+            "displayFolder": "PS4 - Tăng trưởng & Ma trận"
+          },
+          {
+            "name": "Revenue Tier Group",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[district]),",
+              "    VAR BenchRev = MEDIANX(CALCULATETABLE(VALUES(dim_geography[district]), ALLSELECTED(dim_geography[district])), [Net Revenue])",
+              "    RETURN IF(NOT ISBLANK(BenchRev), IF([Net Revenue] >= BenchRev, \"Doanh thu Cao\", \"Doanh thu Thấp\")),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[city]),",
+              "        VAR BenchRev = MEDIANX(CALCULATETABLE(VALUES(dim_geography[city]), ALLSELECTED(dim_geography[city])), [Net Revenue])",
+              "        RETURN IF(NOT ISBLANK(BenchRev), IF([Net Revenue] >= BenchRev, \"Doanh thu Cao\", \"Doanh thu Thấp\")),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[region]),",
+              "            VAR BenchRev = CALCULATE([Net Revenue], ALLSELECTED(dim_geography[region])) / COUNTROWS(ALLSELECTED(dim_geography[region]))",
+              "            RETURN IF(NOT ISBLANK(BenchRev), IF([Net Revenue] >= BenchRev, \"Doanh thu Cao\", \"Doanh thu Thấp\")),",
+              "            BLANK()",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "displayFolder": "PS4 - Tăng trưởng & Ma trận"
+          },
+          {
+            "name": "Growth Group",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[district]),",
+              "    VAR BenchGrowth = MEDIANX(CALCULATETABLE(VALUES(dim_geography[district]), ALLSELECTED(dim_geography[district])), [YoY Growth Pct])",
+              "    RETURN IF(NOT ISBLANK(BenchGrowth), IF([YoY Growth Pct] >= BenchGrowth, \"Tăng trưởng Nhanh\", \"Tăng trưởng Chậm\")),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[city]),",
+              "        VAR BenchGrowth = MEDIANX(CALCULATETABLE(VALUES(dim_geography[city]), ALLSELECTED(dim_geography[city])), [YoY Growth Pct])",
+              "        RETURN IF(NOT ISBLANK(BenchGrowth), IF([YoY Growth Pct] >= BenchGrowth, \"Tăng trưởng Nhanh\", \"Tăng trưởng Chậm\")),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[region]),",
+              "            VAR BenchGrowth = AVERAGEX(ALLSELECTED(dim_geography[region]), [YoY Growth Pct])",
+              "            RETURN IF(NOT ISBLANK(BenchGrowth), IF([YoY Growth Pct] >= BenchGrowth, \"Tăng trưởng Nhanh\", \"Tăng trưởng Chậm\")),",
+              "            BLANK()",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "displayFolder": "PS4 - Tăng trưởng & Ma trận"
+          },
+          {
+            "name": "Selected Geography",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[district]) || HASONEVALUE(dim_geography[district]),",
+              "    SELECTEDVALUE(dim_geography[district]),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[city]) || (HASONEVALUE(dim_geography[city]) && NOT HASONEVALUE(dim_geography[district])),",
+              "        SELECTEDVALUE(dim_geography[city]),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[region]) || HASONEVALUE(dim_geography[region]),",
+              "            SELECTEDVALUE(dim_geography[region]),",
+              "            \"Toàn quốc\"",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "displayFolder": "Hỗ trợ Bộ lọc",
+            "description": "Tên địa giới hành chính động theo cấp phân cấp hiện tại (Region / City / District) phục vụ hiển thị Tooltip và Thẻ trực quan hóa"
+          },
+          {
+            "name": "Overall Rank",
+            "expression": "SELECTEDVALUE(dim_business_unit[overall_rank])",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          },
+          {
+            "name": "KPI Score",
+            "expression": "SELECTEDVALUE(dim_business_unit[kpi_score])",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          },
+          {
+            "name": "Unit Performance Group",
+            "expression": "SELECTEDVALUE(dim_business_unit[unit_performance_kpi])",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          },
+          {
+            "name": "Recommendation",
+            "expression": "SELECTEDVALUE(dim_business_unit[recommendation])",
+            "displayFolder": "PS5 - Văn phòng & Đại lý"
+          }
+        ]
+      },
+      {
+        "name": "fact_order_items",
+        "columns": [
+          {
+            "name": "item_key",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "item_key"
+          },
+          {
+            "name": "item_id",
+            "dataType": "string",
+            "sourceColumn": "item_id"
+          },
+          {
+            "name": "order_id",
+            "dataType": "string",
+            "sourceColumn": "order_id"
+          },
+          {
+            "name": "order_date_key",
+            "dataType": "int64",
+            "sourceColumn": "order_date_key"
+          },
+          {
+            "name": "geography_key",
+            "dataType": "int64",
+            "sourceColumn": "geography_key"
+          },
+          {
+            "name": "product_key",
+            "dataType": "int64",
+            "sourceColumn": "product_key"
+          },
+          {
+            "name": "purchased_quantity",
+            "dataType": "int64",
+            "sourceColumn": "purchased_quantity"
+          },
+          {
+            "name": "returned_quantity",
+            "dataType": "int64",
+            "sourceColumn": "returned_quantity"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_order_items-Partition",
+            "mode": "import",
+            "source": {
+              "type": "query",
+              "query": "SELECT foi.item_key, foi.item_id, foi.order_id, foi.order_date_key, foi.geography_key, foi.product_key, foi.purchased_quantity, foi.returned_quantity FROM dbo.fact_order_items foi WHERE EXISTS (SELECT 1 FROM dbo.fact_orders fo WHERE fo.order_id = foi.order_id AND fo.order_status IN ('delivered', 'returned'))",
+              "dataSource": "SqlServerLocal"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Purchased Qty",
+            "expression": "SUM(fact_order_items[purchased_quantity])",
+            "formatString": "#,##0",
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          },
+          {
+            "name": "Returned Qty",
+            "expression": "SUM(fact_order_items[returned_quantity])",
+            "formatString": "#,##0",
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          },
+          {
+            "name": "Net Quantity",
+            "expression": "[Purchased Qty] - [Returned Qty]",
+            "formatString": "#,##0",
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          },
+          {
+            "name": "Quantity Share Pct KPI",
+            "expression": "DIVIDE([Net Quantity], CALCULATE([Net Quantity], ALLSELECTED(dim_geography)))",
+            "formatString": "0.00%",
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          },
+          {
+            "name": "Return Qty Rate Pct",
+            "expression": "DIVIDE([Returned Qty], [Purchased Qty], 0)",
+            "formatString": "0.00%",
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          },
+          {
+            "name": "Quantity Gap Abs",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[city]),",
+              "    VAR TopCityVol = CALCULATE([Net Quantity], TOPN(1, ALLSELECTED(dim_geography[city]), [Net Quantity], DESC))",
+              "    RETURN [Net Quantity] - TopCityVol,",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[region]),",
+              "        VAR TopRegVol = CALCULATE([Net Quantity], TOPN(1, ALL(dim_geography[region]), [Net Quantity], DESC))",
+              "        RETURN [Net Quantity] - TopRegVol,",
+              "        BLANK()",
+              "    )",
+              ")"
+            ],
+            "formatString": "#,##0",
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          },
+          {
+            "name": "Quantity Gap Pct",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[city]),",
+              "    VAR TopCityVol = CALCULATE([Net Quantity], TOPN(1, ALLSELECTED(dim_geography[city]), [Net Quantity], DESC))",
+              "    RETURN DIVIDE([Net Quantity] - TopCityVol, TopCityVol, 0),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[region]),",
+              "        VAR TopRegVol = CALCULATE([Net Quantity], TOPN(1, ALL(dim_geography[region]), [Net Quantity], DESC))",
+              "        RETURN DIVIDE([Net Quantity] - TopRegVol, TopRegVol, 0),",
+              "        BLANK()",
+              "    )",
+              ")"
+            ],
+            "formatString": "0.00%",
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          },
+          {
+            "name": "Quantity Disparity Index",
+            "expression": "IF(\n    ISINSCOPE(dim_geography[city]),\n    VAR MinCity = MINX(ALL(dim_geography[city]), [Net Quantity])\n    RETURN DIVIDE([Net Quantity], MinCity, 0),\n    IF(\n        ISINSCOPE(dim_geography[region]),\n        VAR MinReg = MINX(ALL(dim_geography[region]), CALCULATE([Net Quantity], ALL(dim_geography[city])))\n        RETURN DIVIDE([Net Quantity], MinReg, 0),\n        VAR MaxReg = MAXX(ALL(dim_geography[region]), CALCULATE([Net Quantity], ALL(dim_geography[city])))\n        VAR MinReg = MINX(ALL(dim_geography[region]), CALCULATE([Net Quantity], ALL(dim_geography[city])))\n        RETURN DIVIDE(MaxReg, MinReg, 0)\n    )\n)",
+            "formatString": "0.00\\x",
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          },
+          {
+            "name": "Quantity Group",
+            "expression": [
+              "IF(",
+              "    ISINSCOPE(dim_geography[district]),",
+              "    SWITCH(",
+              "        TRUE(),",
+              "        [Quantity Share Pct KPI] >= 0.00228, \"4. Xuất sắc\",",
+              "        [Quantity Share Pct KPI] >= 0.00175, \"3. Tốt\",",
+              "        [Quantity Share Pct KPI] >= 0.00137, \"2. Trung bình\",",
+              "        \"1. Thấp\"",
+              "    ),",
+              "    IF(",
+              "        ISINSCOPE(dim_geography[city]),",
+              "        SWITCH(",
+              "            TRUE(),",
+              "            [Quantity Share Pct KPI] >= 0.0316, \"4. Xuất sắc\",",
+              "            [Quantity Share Pct KPI] >= 0.0235, \"3. Tốt\",",
+              "            [Quantity Share Pct KPI] >= 0.0177, \"2. Trung bình\",",
+              "            \"1. Thấp\"",
+              "        ),",
+              "        IF(",
+              "            ISINSCOPE(dim_geography[region]),",
+              "            SWITCH(",
+              "                TRUE(),",
+              "                [Quantity Share Pct KPI] >= 0.35, \"Cao\",",
+              "                [Quantity Share Pct KPI] >= 0.28, \"Trung bình\",",
+              "                \"Thấp\"",
+              "            ),",
+              "            BLANK()",
+              "        )",
+              "    )",
+              ")"
+            ],
+            "displayFolder": "PS2 - Sản lượng & Phân phối"
+          }
+        ]
+      },
+      {
+        "name": "dim_waterfall",
+        "columns": [
+          {
+            "name": "stage_id",
+            "dataType": "int64",
+            "isHidden": true,
+            "isKey": true,
+            "sourceColumn": "stage_id"
+          },
+          {
+            "name": "Stage",
+            "dataType": "string",
+            "sourceColumn": "stage",
+            "sortByColumn": "sort_order"
+          },
+          {
+            "name": "sort_order",
+            "dataType": "int64",
+            "isHidden": true,
+            "sourceColumn": "sort_order"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_waterfall-Partition",
+            "mode": "import",
+            "source": {
+              "type": "query",
+              "query": "SELECT stage_id, stage, sort_order FROM dbo.dim_waterfall",
+              "dataSource": "SqlServerLocal"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Waterfall Value",
+            "expression": "SWITCH(SELECTEDVALUE(dim_waterfall[Stage]), \"Gross Revenue\", [Gross Revenue], \"Doanh thu gộp\", [Gross Revenue], \"(-) Hoàn Trả\", - [Refund Amount], \"Hoàn trả\", - [Refund Amount], \"Tiền hoàn trả\", - [Refund Amount], BLANK())",
+            "formatString": "#,##0 ₫",
+            "displayFolder": "PS1 - Doanh thu & Địa bàn"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "Rel_fact_orders_dim_date",
+        "fromTable": "fact_orders",
+        "fromColumn": "order_date_key",
+        "toTable": "dim_date",
+        "toColumn": "date_key"
+      },
+      {
+        "name": "Rel_fact_orders_dim_customer",
+        "fromTable": "fact_orders",
+        "fromColumn": "customer_key",
+        "toTable": "dim_customer",
+        "toColumn": "customer_key"
+      },
+      {
+        "name": "Rel_fact_orders_dim_geography",
+        "fromTable": "fact_orders",
+        "fromColumn": "geography_key",
+        "toTable": "dim_geography",
+        "toColumn": "geography_key"
+      },
+      {
+        "name": "Rel_fact_orders_dim_business_unit",
+        "fromTable": "fact_orders",
+        "fromColumn": "unit_key",
+        "toTable": "dim_business_unit",
+        "toColumn": "unit_key"
+      },
+      {
+        "name": "Rel_fact_order_items_dim_date",
+        "fromTable": "fact_order_items",
+        "fromColumn": "order_date_key",
+        "toTable": "dim_date",
+        "toColumn": "date_key"
+      },
+      {
+        "name": "Rel_fact_order_items_dim_geography",
+        "fromTable": "fact_order_items",
+        "fromColumn": "geography_key",
+        "toTable": "dim_geography",
+        "toColumn": "geography_key"
+      },
+      {
+        "name": "Rel_fact_order_items_dim_product",
+        "fromTable": "fact_order_items",
+        "fromColumn": "product_key",
+        "toTable": "dim_product",
+        "toColumn": "product_key"
+      },
+      {
+        "name": "Rel_dim_geography_dim_business_unit",
+        "fromTable": "dim_geography",
+        "fromColumn": "unit_key",
+        "toTable": "dim_business_unit",
+        "toColumn": "unit_key",
+        "isActive": false
+      }
+    ],
+    "annotations": [
+      {
+        "name": "__TEdtr",
+        "value": "1"
+      }
+    ]
+  }
+}
